@@ -1,0 +1,24 @@
+.header-bar{
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+//头部右侧用户样式
+.content-con{
+  float: right;
+  height: auto;
+  padding-right: 20px;
+  line-height: 64px;
+  & > *{
+    float: right;
+  }
+}
+.menu-icon{
+  transition: all .3s;//旋转变化时间
+}
+.menu-icon:hover{
+  color: #2d8cf0;
+}
+.rotate-icon{
+  transform: rotate(90deg);//逆时针旋转90度
+}
