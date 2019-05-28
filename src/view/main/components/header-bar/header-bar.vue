@@ -2,8 +2,8 @@
 <div>
   <Icon type="md-menu" size="24" :style="{margin: '0 10px'}" :class="rotateIcon" @click.native="collapsedSider"></Icon>
   <div style="display: inline-block;">
-    <Breadcrumb>
-      <BreadcrumbItem>
+    <Breadcrumb :list="breadCrumbList">
+      <BreadcrumbItem to="/home">
         <Icon type="ios-home-outline"></Icon>Home
       </BreadcrumbItem>
       <BreadcrumbItem>
@@ -37,6 +37,13 @@ export default {
         'menu-icon',
         this.isCollapsed ? 'rotate-icon' : ''
       ]
+    },
+    breadCrumbList () {
+      /**
+       * [{"path":"/home","name":"home","meta":{"hideInMenu":true,"title":"首页","notCache":true,"icon":"md-home"},"icon":"md-home"}]
+       */
+      alert(JSON.stringify(this.$store.state.app.breadCrumbList))
+      return this.$store.state.app.breadCrumbList
     }
   },
   methods: {

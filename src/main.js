@@ -7,6 +7,7 @@ import VueRouter from 'vue-router'
 import App from './App'
 import 'iview/dist/styles/iview.css'
 import $ from '../src/js/jquery.min'
+import store from './store'
 // import router from './router'
 // Vue.use(VueRouter)
 Vue.use(iView)
@@ -17,6 +18,7 @@ Vue.config.productionTip = false
 new Vue({
   el: '#app',
   router,
+  store,
   render: h => h(App)
   // components: { App },
   // template: '<App/>'

@@ -2,30 +2,23 @@
   <div class="side-menu-wrapper">
     <!-- 作用于父组件中写的div内容 -->
     <slot></slot>
-    <!-- active-name:激活菜单的name值 open-names:展开指定的子菜单-->
-    <Menu theme="dark" width="auto" :class="menuitemClasses" accordion v-show="!isCollapsed">
+    <!-- active-name:激活菜单的name值 open-names:展开指定的子菜单 on-select:选择菜单（MenuItem）时触发-->
+    <Menu theme="dark" width="auto" :class="menuitemClasses" accordion v-show="!isCollapsed" @on-select="handleSelect">
       <Submenu name="1">
         <template slot="title">
-          <Icon type="ios-stats"/><span>系统管理</span>
+          <Icon type="ios-stats"/><span>开发模块</span>
         </template>
-        <!-- <div v-show="!isCollapsed"> -->
-          <MenuItem name="1-1"><Icon type="ios-stats"/><span>行政区域</span></MenuItem>
-          <MenuItem name="1-2"><Icon type="ios-stats"/><span>系统菜单</span></MenuItem>
-          <MenuItem name="1-3"><Icon type="ios-stats"/><span>通用字典</span></MenuItem>
-          <MenuItem name="1-4"><Icon type="ios-stats"/><span>系统日志</span></MenuItem>
-          <MenuItem name="1-5"><Icon type="ios-stats"/><span>定时任务</span></MenuItem>
-          <MenuItem name="1-6"><Icon type="ios-stats"/><span>敏捷开发</span></MenuItem>
-          <MenuItem name="1-7"><Icon type="ios-stats"/><span>系统监控</span></MenuItem>
-          <MenuItem name="1-7"><Icon type="ios-stats"/><span>接口管理</span></MenuItem>
-        <!-- </div> -->
+          <div v-for="(item,index) in sysList">
+          <MenuItem :name="`${item.name}`"><Icon type="ios-stats"/><span>{{ item.title }}</span></MenuItem>
+          </div>
       </Submenu>
       <Submenu name="2">
         <template slot="title">
-          <Icon type="ios-people" /><span>组织机构</span>
+          <Icon type="ios-people" /><span>PS模块</span>
         </template>
-        <MenuItem name="2-1"><Icon type="ios-people" /><span>机构管理</span></MenuItem>
-        <MenuItem name="2-2"><Icon type="ios-people" /><span>角色管理</span></MenuItem>
-        <MenuItem name="2-3"><Icon type="ios-people" /><span>用户管理</span></MenuItem>
+        <div v-for="(item,index) in zuList">
+        <MenuItem :name="`${item.name}`"><Icon type="ios-people" /><span>{{ item.title }}</span></MenuItem>
+        </div>
       </Submenu>
     </Menu>
     <div class="menu-collapsed" v-show="isCollapsed">
@@ -35,9 +28,9 @@
           <Icon :size="16" style="color:white;" type="ios-stats"/>
         </a>
         <DropdownMenu slot="list">
-          <DropdownItem>行政区域</DropdownItem>
-          <DropdownItem>行政区域</DropdownItem>
-          <DropdownItem>行政区域</DropdownItem>
+          <DropdownItem>开发-1</DropdownItem>
+          <DropdownItem>开发-2</DropdownItem>
+          <DropdownItem>开发-3</DropdownItem>
         </DropdownMenu>
       </Dropdown>
       <Dropdown placement="bottom">
@@ -45,9 +38,9 @@
           <Icon :size="16" style="color:white;" type="ios-stats"/>
         </a>
         <DropdownMenu slot="list">
-          <DropdownItem>行政区域</DropdownItem>
-          <DropdownItem>行政区域</DropdownItem>
-          <DropdownItem>行政区域</DropdownItem>
+          <DropdownItem>PS-1</DropdownItem>
+          <DropdownItem>PS-2</DropdownItem>
+          <DropdownItem>PS-3</DropdownItem>
         </DropdownMenu>
       </Dropdown>
       </template>
@@ -60,7 +53,13 @@ export default {
   name: 'SideMenu',
   data () {
     return {
-      dropdowmenu: false
+      dropdowmenu: false,
+      sysList: [
+        {title: '开发-1',name: 'area_index'},{title: '开发-2',name: 'menu_index'},{title: '开发-3',name: 'dictionary_index'}
+      ],
+      zuList: [
+        {title: 'PS-1',name: 'org_index'},{title: 'PS-2',name: 'area_index',name: 'role_index'},{title: 'PS-3',name: 'user_index'}
+      ]
     }
   },
   props: {
@@ -72,6 +71,11 @@ export default {
         'menu-item',
         this.isCollapsed ? 'collapsed-menu' : ''
       ]
+    }
+  },
+  methods: {
+    handleSelect (name) {
+      this.$emit('on-select', name)
     }
   }
 }
