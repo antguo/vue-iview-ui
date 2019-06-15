@@ -1,7 +1,8 @@
 <template>
 <div>
   <Icon type="md-menu" size="24" :style="{margin: '0 10px'}" :class="rotateIcon" @click.native="collapsedSider"></Icon>
-  <div style="display: inline-block;">
+  <custom-bread-crumb :list="breadCrumbList"></custom-bread-crumb>
+  <!-- <div style="display: inline-block;">
     <Breadcrumb :list="breadCrumbList">
       <BreadcrumbItem to="/home">
         <Icon type="ios-home-outline"></Icon>Home
@@ -13,7 +14,8 @@
         <Icon type="ios-cafe"></Icon>Breadcrumb
       </BreadcrumbItem>
     </Breadcrumb>
-  </div>
+  </div> -->
+  
   <div class="content-con">
     <slot></slot>
   </div>
@@ -21,8 +23,12 @@
 </template>
 <script>
 import './header-bar.less'
+import customBreadCrumb from './custom-bread-crumb'
 export default {
   name: "HeaderBar",
+  components: {
+    customBreadCrumb
+  },
   props: {
     isCollapsed: Boolean
   },
@@ -42,7 +48,7 @@ export default {
       /**
        * [{"path":"/home","name":"home","meta":{"hideInMenu":true,"title":"首页","notCache":true,"icon":"md-home"},"icon":"md-home"}]
        */
-      alert(JSON.stringify(this.$store.state.app.breadCrumbList))
+      // alert('breadCrumbList:'+JSON.stringify(this.$store.state.app.breadCrumbList))
       return this.$store.state.app.breadCrumbList
     }
   },

@@ -2,7 +2,7 @@
   <!-- <div class="layout"> -->
     <Layout style="height: 100%" class="main">
       <Sider hide-trigger collapsible :width="256" :collapsed-width="64" v-model="isCollapsed" class="left-sider" :style="{overflow: 'hidden'}" ref="side1">
-        <side-menu accordion :isCollapsed="isCollapsed" @on-select="turnToPage">
+        <side-menu :active-name="$route.name" ref="sideMenu" accordion :isCollapsed="isCollapsed" @on-select="turnToPage" :menu-list="menuList">
           <!-- 子组件中要加上slot才可以显示 -->
           <div class="logo-con">
             <img v-show="!isCollapsed" src="@/assets/gwj2.png" alt="">
@@ -24,7 +24,9 @@
         <Content class="main-content-con">
           <Layout class="main-layout-con">
             <!-- 滚动标签导航 -->
-            <div class="tag-nav-wrapper"><tags-nav @input="handleClick"></tags-nav></div>
+            <div class="tag-nav-wrapper">
+              <tags-nav :value="$route" :list="tagNavList" @input="handleClick" @on-close="handleCloseTag"></tags-nav>
+            </div>
             <!-- 内容 -->
             <Content class="content-wrapper">
               <!-- keep-alive是Vue提供的一个抽象组件，用来对组件进行缓存，从而节省性能 -->
@@ -50,8 +52,10 @@ import HeaderBar from './components/header-bar'
 import User from './components/user'
 import TagsNav from './components/tags-nav'
 import './main.less'
+import { getNewTagList, routeEqual } from '@/libs/util' 
 // import { stat } from 'fs';
 import { mapMutations, mapActions, mapGetters } from 'vuex'
+import routers from '@/router/router'
 export default {
   name: 'Main',
   components: {
@@ -90,12 +94,19 @@ export default {
        */
       const list = ['ParentView', ...this.tagNavList.length ? this.tagNavList.filter(item => !(item.meta && item.meta.notCache)).map(item => item.name) : []]
       return list
+    },
+    menuList () {
+      return this.$store.getters.menuList
     }
   },
   methods: {
     // 组件中可以使用this.$store.commit('xxx')提交mutation或者...mapMutations将组件中的methods映射为store.commit调用(需要在根节点注入store)
     ...mapMutations([
-      'setBreadCrumb'
+      'setBreadCrumb',
+      'setHomeRoute',
+      'setTagNavList',
+      'closeTag',
+      'addTag'
     ]),
     collapsedSider (state) {
       this.$refs.side1.toggleCollapse();
@@ -106,26 +117,61 @@ export default {
     },
     // 标签跳转页面
     turnToPage (route) {
-      let name = {}
+      let { name, params, query } = {}
       // typeof运算符用于判断对象的类型:undefined/boolean/string/number/object/function
       if (typeof route === 'string') name = route
       else {
         name = route.name
+        params = route.params
+        query = route.query
+      }
+      if (name.indexOf('isTurnByHref_') > -1) {
+        window.open(name.split('_')[1])
+        return
       }
       this.$router.push({
-        name
+        name,
+        params,
+        query
       })
       // alert("route:" + JSON.stringify(route) + "\ntypeof:" + typeof route +"\nname:" + route.name)
       // this.$router.push({name: route.name})
+    },
+    handleCloseTag (res, type, route) {
+      if (type !== 'others') {
+        if (type === 'all') {
+          this.turnToPage(this.$config.homeName)
+        } else {
+          if (routeEqual(this.$route, route)) {
+            this.closeTag(route)
+          }
+        }
+      }
+      this.setTagNavList(res)
     }
   },
   // 用watch来监控路由对象
   watch: {
     '$route' (newRoute) {
+      const { name, query, params, meta } = newRoute
+      this.addTag({
+        route: { name, query, params, meta },
+        type: 'push'
+      })
       this.setBreadCrumb(newRoute)
+      this.setTagNavList(getNewTagList(this.tagNavList, newRoute))
+      this.$refs.sideMenu.updateOpenName(newRoute.name)
     }
   },
   mounted () {
+    /**
+     * @description 初始化设置面包屑导航和标签导航
+     */
+    this.setTagNavList()
+    this.addTag({
+      route: this.$store.state.app.homeRoute
+    })
+    this.setHomeRoute(routers)
     this.setBreadCrumb(this.$route)
   }
 }

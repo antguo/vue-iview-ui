@@ -1,22 +1,86 @@
 import {
   getBreadCrumbList,
-  getHomeRoute
+  getHomeRoute,
+  setTagNavListInLocalstorage,
+  getTagNavListFromLocalstorage,
+  routeEqual,
+  getNextRoute,
+  getRouteTitleHandled,
+  routeHasExist,
+  getMenuByRouter
 } from '@/libs/util'
 import config from '@/config'
+import routers from '@/router/router'
+import { stat } from 'fs';
 const { homeName } = config
+
+const closePage = (state, route) => {
+  const nextRoute = getNextRoute(state.tagNavList, route)
+  state.tagNavList = state.tagNavList.filter(item => {
+    return !routeEqual(item, route)
+  })
+  route.push(nextRoute)//把下一路由添加到当前路由的尾部？
+}
 export default {
   state: {
     breadCrumbList: [],
-    homeRoute: {}
+    homeRoute: {},
+    tagNavList: [],
+    errorList: []
+  },
+  //获取左侧菜单栏
+  getters: {//getters中必须写function
+    /**参数： 1. state，模块中的 state 仅为模块自身中的 state；2. getters，等同于 store.getters；3. rootState，全局 state。通过 rootState，模块中的 getters 就可以引用别的模块中的 state  
+     * 由于 getters 不区分模块，所以不同模块中的 getters 如果重名，Vuex 会报出 'duplicate getter key: [重复的getter名]' 错误。
+    */
+    menuList: (state, getters, rootState) => getMenuByRouter(routers, rootState.user.access),
+    errorCount: state => state.errorList.length
   },
   // 更改 Vuex 的 store 中的状态的唯一方法是提交 mutation
   mutations: {
     setBreadCrumb (state, route) {
-      alert(JSON.stringify(route)) //{"breadCrumbList":[],"homeRoute":{}}
       state.breadCrumbList = getBreadCrumbList(route, state.homeRoute)
     },
     setHomeRoute (state, routes) {
+      // 获取home的路由信息
       state.homeRoute = getHomeRoute(routes, homeName)
+    },
+    closeTag (state, route) {
+      let tag = state.tagNavList.filter(item => routeEqual(item, route))
+      route = tag[0] ? tag[0] : null
+      if (!route) return
+      closePage(state, route)
+    },
+    setTagNavList (state, list) {
+      let tagList = []
+      if (list) {
+        tagList = [...list]
+      } else tagList = getTagNavListFromLocalstorage() || []
+      // shift() 方法用于把数组的第一个元素从其中删除，并返回第一个元素的值。
+      if (tagList[0] && tagList[0].name !== homeName) tagList.shift()
+      // findIndex() 方法返回传入一个测试条件（函数）符合条件的数组第一个元素位置。
+      let homeTagIndex = tagList.findIndex(item => item.name === homeName)
+      if (homeTagIndex > 0) {
+        // splice() 方法向/从数组中添加/删除项目，然后返回被删除的项目，语法：arrayObject.splice(index,howmany,item1,...,itemX)
+        /**
+         * index: 删除的位置；howmany:删除的数量，item:添加的项目（可选）
+         */
+        let homeTag = tagList.splice(homeTagIndex, 1)[0]
+        tagList.unshift(homeTag)
+      }
+      state.tagNavList = tagList
+      setTagNavListInLocalstorage([...tagList])
+    },
+    addTag (state, { route, type = 'unshift' }) {
+      let router = getRouteTitleHandled(route)
+      if (!routeHasExist(state.tagNavList, router)) {
+        if (type === 'push') state.tagNavList.push(router)
+        else {
+          if (router.name === homeName) state.tagNavList.unshift(router)
+          else state.tagNavList.splice(1,0,router)
+        }
+        setTagNavListInLocalstorage([...state.tagNavList])
+      }
     }
   }
 }
